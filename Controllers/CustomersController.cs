@@ -13,7 +13,7 @@ namespace dotnetcore_jwt_auth.Controllers
     public class CustomersController : ControllerBase
     {
         // GET api/values
-        [Authorize]
+        [Authorize(Roles = "Manager")]
         [HttpGet]
         public IEnumerable<string> Get()
         {

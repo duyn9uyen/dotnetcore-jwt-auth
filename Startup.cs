@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -62,6 +63,14 @@ namespace dotnetcore_jwt_auth
             });
             #endregion;
 
+            #region Mediator Pattern
+            services.AddMediatR(typeof(Startup));
+            #endregion
+
+
+            #region Custom Classes for DI
+            services.AddSingleton<FakeDataStore>();
+            #endregion
             services.AddControllers();
         }
 

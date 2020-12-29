@@ -13,6 +13,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using dotnetcore_jwt_auth.Models;
+using Microsoft.EntityFrameworkCore;
+using dotnetcore_jwt_auth.Services;
 
 namespace dotnetcore_jwt_auth
 {
@@ -61,6 +64,14 @@ namespace dotnetcore_jwt_auth
                 };
             });
             #endregion;
+
+            #region Configure EF Core
+            services.AddDbContext<UserContext>(opts => opts.UseSqlServer(Configuration["ConnectionString:UserDB"]));
+            #endregion
+
+            #region Dependecy Inject Models
+            services.AddTransient<ITokenService, TokenService>();
+            #endregion
 
             services.AddControllers();
         }

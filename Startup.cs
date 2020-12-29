@@ -16,6 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 using dotnetcore_jwt_auth.Models;
 using Microsoft.EntityFrameworkCore;
 using dotnetcore_jwt_auth.Services;
+using dotnetcore_jwt_auth.Extensions;
 
 namespace dotnetcore_jwt_auth
 {
@@ -31,47 +32,13 @@ namespace dotnetcore_jwt_auth
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            #region Add CORS Support
-
-            services.AddCors(options =>
-            {
-                options.AddPolicy("EnableCORS", builder =>
-                {
-                    builder.AllowAnyOrigin()
-                            .AllowAnyHeader()
-                            .AllowAnyMethod();
-                });
-            });
-
-            #endregion
-
-            #region Configuring Jwt-Auth
-            services.AddAuthentication(opt => {
-                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = "http://localhost:5000", //This much match what the API passes back in the AuthController.Login()
-                    ValidAudience = "http://localhost:5000",
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345")) //Store as environment variable?
-                };
-            });
-            #endregion;
-
-            #region Configure EF Core
-            services.AddDbContext<UserContext>(opts => opts.UseSqlServer(Configuration["ConnectionString:UserDB"]));
-            #endregion
-
-            #region Dependecy Inject Models
-            services.AddTransient<ITokenService, TokenService>();
-            #endregion
+            // We moved custom configurations into the ServiceExtension.cs method to keep startup.cs clean
+            services.ConfigureCors();
+            services.ConfigureJwtAuth();
+            //services.ConfigureEfCore(Configuration);
+            services.ConfigureEfCoreInMemoryDb(Configuration);
+            services.ConfigureModels();
+            services.ConfigureSwagger();
 
             services.AddControllers();
         }
@@ -101,6 +68,12 @@ namespace dotnetcore_jwt_auth
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+            });
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "AccountOwner API V1");
             });
         }
     }
